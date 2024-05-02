@@ -52,7 +52,7 @@ Window::Window() :
     mWindow.setVerticalSyncEnabled(false);
     //mWindow.setIcon(100, 100, sf::Image()); // Set the window's icon
 
-    cpu.loadROM("assets/test.ch8");
+    cpu.loadROM("assets/test.2.ch8");
 }
 
 
@@ -174,10 +174,6 @@ void Window::render(double time) {
     bg.setFillColor(sf::Color::Cyan);
     bg.setPosition(0.0f, 0.0f);
     mWindow.draw(bg);
-
-    for(unsigned char & i : cpu.video) {
-        i = 0;
-    }
 
     //Draw 'game'
     sf::Texture texture;
