@@ -109,15 +109,41 @@ void Window::loop() {
 
 
 void Window::handlePlayerInput(const sf::Keyboard::Key key, const bool isPressed) {
-    if (key == sf::Keyboard::A or key == sf::Keyboard::Left) {
-        //mIsMovingLeft = isPressed;
-    } else if (key == sf::Keyboard::D or key == sf::Keyboard::Right) {
-        //mIsMovingRight = isPressed;
+    if (key == sf::Keyboard::X) {
+        cpu.keypad[0] = isPressed;
+    } else if (key == sf::Keyboard::Num1) {
+        cpu.keypad[1] = isPressed;
+    } else if (key == sf::Keyboard::Num2) {
+        cpu.keypad[2] = isPressed;
+    } else if (key == sf::Keyboard::Num3) {
+        cpu.keypad[3] = isPressed;
+    } else if (key == sf::Keyboard::Q) {
+        cpu.keypad[4] = isPressed;
+    } else if (key == sf::Keyboard::W) {
+        cpu.keypad[5] = isPressed;
+    } else if (key == sf::Keyboard::E) {
+        cpu.keypad[6] = isPressed;
+    } else if (key == sf::Keyboard::A) {
+        cpu.keypad[7] = isPressed;
+    } else if (key == sf::Keyboard::S) {
+        cpu.keypad[8] = isPressed;
+    } else if (key == sf::Keyboard::D) {
+        cpu.keypad[9] = isPressed;
+    } else if (key == sf::Keyboard::Z) {
+        cpu.keypad[0xA] = isPressed;
+    } else if (key == sf::Keyboard::C) {
+        cpu.keypad[0xB] = isPressed;
+    } else if (key == sf::Keyboard::Num4) {
+        cpu.keypad[0xC] = isPressed;
+    } else if (key == sf::Keyboard::R) {
+        cpu.keypad[0xD] = isPressed;
+    } else if (key == sf::Keyboard::F) {
+        cpu.keypad[0xE] = isPressed;
+    } else if (key == sf::Keyboard::V) {
+        cpu.keypad[0xF] = isPressed;
+    } else if (key == sf::Keyboard::Escape) {
+        exit(0);
     }
-    // else if (key == sf::Keyboard::Escape)
-    // {
-    //     exit(0);
-    // }
 }
 
 
