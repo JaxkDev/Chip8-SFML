@@ -153,13 +153,7 @@ void Window::processEvents() {
 
 
 void Window::update(const double time, const double deltaTime) {
-    // const auto PlayerSpeed = static_cast<float>(400.0 * deltaTime);
-    // sf::Vector2f movement(0.f, 0.f);
-    // if (mIsMovingLeft)
-    //     movement.x -= PlayerSpeed;
-    // if (mIsMovingRight)
-    //     movement.x += PlayerSpeed;
-    // mPlayer.move(movement);
+    cpu.cycle();
 
 #ifndef NDEBUG
     //std::cout << "[Update] t: " << time << " dt: " << deltaTime << std::endl;
@@ -176,18 +170,45 @@ void Window::render(double time) {
 
     //Draw 'background'
     sf::RectangleShape bg;
-    bg.setSize(sf::Vector2f(64, 32));
-    bg.setFillColor(sf::Color::Black);
-    bg.setPosition(1.0f, 1.0f);
-    sf::RectangleShape bg2;
-    bg2.setSize(sf::Vector2f(66, 34));
-    bg2.setFillColor(sf::Color::Cyan);
-    bg2.setPosition(0.0f, 0.0f);
-    mWindow.draw(bg2);
+    bg.setSize(sf::Vector2f(66, 34));
+    bg.setFillColor(sf::Color::Cyan);
+    bg.setPosition(0.0f, 0.0f);
     mWindow.draw(bg);
 
-    //Draw 'game'
+    for(unsigned char & i : cpu.video) {
+        i = 0;
+    }
 
+    //Draw 'game'
+    sf::Texture texture;
+    if(texture.create(64, 32)) {
+        // Little hacky because SFML texture uses RGBA, but CHIP-8 uses 1-bit per pixel (on/off).
+        uint8_t pixels[64*32*4]{20};
+        for(int i = 0; i < 64*32; i++) {
+            if(cpu.video[i] == 1) {
+                // White
+                pixels[i*4] = 255;
+                pixels[i*4+1] = 255;
+                pixels[i*4+2] = 255;
+                pixels[i*4+3] = 255;
+            } else {
+                // Grey
+                pixels[i*4] = 40;
+                pixels[i*4+1] = 40;
+                pixels[i*4+2] = 40;
+                pixels[i*4+3] = 255;
+            }
+        }
+
+        texture.update(pixels, 64, 32, 0, 0);
+    } else {
+        std::cout << "Error: Failed to create texture." << std::endl;
+    }
+
+
+    sf::Sprite sprite(texture);
+    sprite.setPosition(1, 1);
+    mWindow.draw(sprite);
 
     //Draw 'Debug/Admin'
 
