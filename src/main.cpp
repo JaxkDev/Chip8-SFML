@@ -1,15 +1,14 @@
-#include "Game.h"
+#include "Window.h"
 
 #ifndef NDEBUG
 #include <iostream>
 #endif //NDEBUG
 
-int main()
-{
+int main() {
 #ifndef NDEBUG
     std::cerr << "WARNING: Running debug build, expect reduced performance." << std::endl;
 #endif //NDEBUG
 
-    Game game;
-    game.run();
+    Window window;
+    window.loop();
 }

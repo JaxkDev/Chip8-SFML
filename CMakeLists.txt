@@ -19,23 +19,24 @@ FetchContent_Declare(sfml
 if (NOT sfml_POPULATED)
     FetchContent_Populate(sfml)
     add_subdirectory(${sfml_SOURCE_DIR} ${sfml_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+endif ()
 
 add_executable(Chip8-SFML
         src/main.cpp
-        src/Game.cpp
+        src/Window.cpp
+        src/vCPU.cpp
 )
 target_link_libraries(Chip8-SFML PRIVATE sfml-graphics sfml-system sfml-window sfml-network sfml-audio)
 target_compile_features(Chip8-SFML PRIVATE cxx_std_20)
 
-if(WIN32)
+if (WIN32)
     add_custom_command(
             TARGET Chip8-SFML
             COMMENT "Copy OpenAL DLL"
             POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SFML_SOURCE_DIR}/extlibs/bin/$<IF:$<EQUAL:${CMAKE_SIZEOF_VOID_P},8>,x64,x86>/openal32.dll $<TARGET_FILE_DIR:Chip8-SFML>
             VERBATIM
     )
-endif()
+endif ()
 
 add_custom_command(
         TARGET Chip8-SFML

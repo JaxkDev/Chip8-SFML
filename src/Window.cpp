@@ -1,11 +1,10 @@
-#include "Game.h"
+#include "Window.h"
 #include <iostream>
 #include <chrono>
 
 
 // https://github.com/SFML/SFML/wiki/Source%3A-Letterbox-effect-using-a-view#the-function
 sf::View getLetterboxView(sf::View view, const int windowWidth, const int windowHeight) {
-
     // Compares the aspect ratio of the window to the aspect ratio of the view,
     // and sets the view's viewport accordingly in order to achieve a letterbox effect.
     // A new view (with a new viewport set) is returned.
@@ -27,61 +26,44 @@ sf::View getLetterboxView(sf::View view, const int windowWidth, const int window
     if (horizontalSpacing) {
         sizeX = viewRatio / windowRatio;
         posX = (1 - sizeX) / 2.f;
-    }
-
-    else {
+    } else {
         sizeY = windowRatio / viewRatio;
         posY = (1 - sizeY) / 2.f;
     }
 
-    view.setViewport( sf::FloatRect(posX, posY, sizeX, sizeY) );
+    view.setViewport(sf::FloatRect(posX, posY, sizeX, sizeY));
 
     return view;
 }
 
 // ReSharper disable twice CppDFAConstantConditions - vSync
 // ReSharper disable once CppDFAUnreachableCode - vSync
-Game::Game() : 
-    mWindow(sf::VideoMode::getDesktopMode(), "Brick Breaker", sf::Style::Default)
+Window::Window() :
+    mWindow(sf::VideoMode(512, 512, 1), "CHIP8 Emulator", sf::Style::Default)
 {
-    const sf::VideoMode mode = sf::VideoMode::getDesktopMode();
-    std::cout << "Using resolution: " << mode.width << "x" << mode.height << " - " << mode.bitsPerPixel << " bpp" << std::endl;
-    std::cout << "FPS Limit: " << FPS_Limit << "\nvSync Enabled: " << (vSyncEnabled ? "YES" : "NO") << std::endl;
-    mView.setSize( 1920, 1080 );
-    mView.setCenter( mView.getSize().x / 2, mView.getSize().y / 2 );
-    mView = getLetterboxView( mView, mode.width, mode.height); // NOLINT(*-narrowing-conversions)
+    const auto mode = sf::VideoMode(512, 512, 1); //sf::VideoMode::getDesktopMode();
+    std::cout << "Using resolution: " << mode.width << "x" << mode.height << " - " << mode.bitsPerPixel << " bpp" <<
+            std::endl;
+    std::cout << "FPS Limit: " << FPS_Limit << std::endl;
+    mView.setSize(66, 34);
+    mView.setCenter(mView.getSize().x / 2, mView.getSize().y / 2);
+    mView = getLetterboxView(mView, mode.width, mode.height); // NOLINT(*-narrowing-conversions)
 
-    //if(vSyncEnabled) { mWindow.setVerticalSyncEnabled(true); } // Enable vertical sync (VSync)
     mWindow.setVerticalSyncEnabled(false);
     //mWindow.setIcon(100, 100, sf::Image()); // Set the window's icon
-    mPlayer.setSize(sf::Vector2f(250.0f, 20.0f));
-    mPlayer.setPosition(960.f, 1000.f);
-    mPlayer.setFillColor(sf::Color::Red);
 
-    mFPSText.setPosition(10.f, 10.f);
-    mFPSText.setCharacterSize(22);
-    mFPSText.setFillColor(sf::Color::Red);
+    cpu.loadROM("assets/test.ch8");
 }
 
 
 /// Fixed timestep for Rendering and Update
-void Game::run()
-{
-    sf::Font fpsFont;
-    if(!fpsFont.loadFromFile("assets/fonts/Roboto.ttf"))
-    {
-        std::cerr << "Failed to load fonts." << std::endl;
-        exit(1);
-    }
-    mFPSText.setFont(fpsFont);
-    mFPSText.setStyle(sf::Text::Style::Italic);
-
+void Window::loop() {
     int frames = 0;
     int ticks = 0;
     sf::Clock frameClock;
 
     double t = 0.0; //
-    const double dt = 1.0 / std::max(144.0, static_cast<double>(FPS_Limit)); // Fixed timestep for game logic (>=144)
+    const double dt = 1.0 / 600; // Fixed timestep for game logic (vCPU Speed)
     const double renderDt = 1.0 / static_cast<double>(FPS_Limit); // Fixed timestep for rendering
 
     auto currentTime = std::chrono::steady_clock::now();
@@ -118,7 +100,7 @@ void Game::run()
             frameClock.restart();
             FPS = frames;
             TPS = ticks;
-            mFPSText.setString("FPS: " + std::to_string(FPS) + "\nTPS: " + std::to_string(ticks));
+            std::cout << "FPS: " << frames << " TPS: " << ticks << std::endl;
             frames = 0;
             ticks = 0;
         }
@@ -126,32 +108,33 @@ void Game::run()
 }
 
 
-void Game::handlePlayerInput(const sf::Keyboard::Key key, const bool isPressed)
-{
-    if (key == sf::Keyboard::A or key == sf::Keyboard::Left)
-    {
-    	mIsMovingLeft = isPressed;
+void Window::handlePlayerInput(const sf::Keyboard::Key key, const bool isPressed) {
+    if (key == sf::Keyboard::A or key == sf::Keyboard::Left) {
+        //mIsMovingLeft = isPressed;
+    } else if (key == sf::Keyboard::D or key == sf::Keyboard::Right) {
+        //mIsMovingRight = isPressed;
     }
-    else if (key == sf::Keyboard::D or key == sf::Keyboard::Right)
-    {
-    	mIsMovingRight = isPressed;
-    }
-    else if (key == sf::Keyboard::Escape)
-    {
-        exit(0);
-    }
+    // else if (key == sf::Keyboard::Escape)
+    // {
+    //     exit(0);
+    // }
 }
 
 
-void Game::processEvents()
-{
+void Window::processEvents() {
     sf::Event event{};
-    while (mWindow.pollEvent(event))
-    {
-        switch (event.type)
-        {
+    while (mWindow.pollEvent(event)) {
+        switch (event.type) {
             case sf::Event::Resized:
-                mView = getLetterboxView(mView, event.size.width,event.size.height ); // NOLINT(*-narrowing-conversions)
+                if (event.size.width < 256) {
+                    //set width to 256
+                    mWindow.setSize(sf::Vector2u(256, event.size.height));
+                }
+                if (event.size.height < 132) {
+                    //set height to 132
+                    mWindow.setSize(sf::Vector2u(mWindow.getSize().x, 132));
+                }
+                mView = getLetterboxView(mView, event.size.width, event.size.height); // NOLINT(*-narrowing-conversions)
                 break;
             case sf::Event::KeyPressed:
                 handlePlayerInput(event.key.code, true);
@@ -169,51 +152,44 @@ void Game::processEvents()
 }
 
 
-void Game::update(const double time, const double deltaTime)
-{
-    const auto PlayerSpeed = static_cast<float>(400.0 * deltaTime);
-    sf::Vector2f movement(0.f, 0.f);
-    if (mIsMovingLeft)
-        movement.x -= PlayerSpeed;
-    if (mIsMovingRight)
-        movement.x += PlayerSpeed;
-    mPlayer.move(movement);
+void Window::update(const double time, const double deltaTime) {
+    // const auto PlayerSpeed = static_cast<float>(400.0 * deltaTime);
+    // sf::Vector2f movement(0.f, 0.f);
+    // if (mIsMovingLeft)
+    //     movement.x -= PlayerSpeed;
+    // if (mIsMovingRight)
+    //     movement.x += PlayerSpeed;
+    // mPlayer.move(movement);
 
 #ifndef NDEBUG
-    std::cout << "[Update] t: " << time << " dt: " << deltaTime << std::endl;
+    //std::cout << "[Update] t: " << time << " dt: " << deltaTime << std::endl;
 #endif
 }
 
 
-void Game::render(double time)
-{
+void Window::render(double time) {
 #ifndef NDEBUG
-    std::cout << "[Render] t: " << time << std::endl;
+    //std::cout << "[Render] t: " << time << std::endl;
 #endif
     mWindow.clear(sf::Color::Black);
     mWindow.setView(mView);
 
     //Draw 'background'
     sf::RectangleShape bg;
-    bg.setSize(sf::Vector2f(1915, 1075));
-    bg.setFillColor(sf::Color::Cyan);
-    bg.setPosition(2.5f, 2.5f);
+    bg.setSize(sf::Vector2f(64, 32));
+    bg.setFillColor(sf::Color::Black);
+    bg.setPosition(1.0f, 1.0f);
     sf::RectangleShape bg2;
-    bg2.setSize(sf::Vector2f(1920, 1080));
-    bg2.setFillColor(sf::Color::Red);
+    bg2.setSize(sf::Vector2f(66, 34));
+    bg2.setFillColor(sf::Color::Cyan);
     bg2.setPosition(0.0f, 0.0f);
     mWindow.draw(bg2);
     mWindow.draw(bg);
 
     //Draw 'game'
-    mWindow.draw(mPlayer);
 
-    //Draw 'UI'
-
-    //Draw 'Urgent'
 
     //Draw 'Debug/Admin'
-    mWindow.draw(mFPSText);
 
     mWindow.display();
 }
